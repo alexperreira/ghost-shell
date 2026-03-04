@@ -197,42 +197,43 @@ if pendingCmd:
 
 ## Steps
 
-- [ ] **Step 1 — LLM client (`internal/llm/client.go`)**
+- [x] **Step 1 — LLM client (`internal/llm/client.go`)**
   - `go get github.com/anthropics/anthropic-sdk-go`
   - `New()`, `Stream()`, `Request` struct
   - System prompt and user prompt template as specified above
   - `extractCommand(response string) string` as a pure function (testable in isolation)
 
-- [ ] **Step 2 — PTY CWD (`internal/pty/pty.go`)**
+- [x] **Step 2 — PTY CWD (`internal/pty/pty.go`)**
   - Store `cmd` on Manager
   - Add `CWD()` via `os.Readlink("/proc/{pid}/cwd")`
 
-- [ ] **Step 3 — Session + routing (`internal/server/ws.go`)**
+- [x] **Step 3 — Session + routing (`internal/server/ws.go`)**
   - `session` struct with history buffer, `cancelAI`
   - Server-side line buffer for history tracking on normal input
   - Route `ai_query` → `llm.Stream` → stream `ai_chunk` → send `ai_done`
   - Handle `run_command` → PTY write + history append
   - Concurrent stream cancellation via `cancelAI`
 
-- [ ] **Step 4 — Frontend ghost mode + AI rendering (`ui/src/Terminal.tsx`)**
+- [x] **Step 4 — Frontend ghost mode + AI rendering (`ui/src/Terminal.tsx`)**
   - `atLineStart` tracking
   - Ghost input mode state machine
   - `pendingCmd` intercept
   - `ai_chunk` / `ai_done` / `ai_error` handlers with ANSI styling
 
-- [ ] **Step 5 — Smoke test**
+- [x] **Step 5 — Smoke test**
   - `? how do I find files larger than 100MB` → streams → command suggested → Enter runs it
   - `? what is my current directory` → answer uses injected CWD
   - Type `? ...` then Esc → cancels cleanly, shell prompt unaffected
   - Fire two `?` queries rapidly → second cancels first, no duplicate output
   - Esc on pending command → dismissed, cursor returns to shell
 
-- [ ] **Step 6 — Cleanup**
+- [x] **Step 6 — Cleanup**
   - Missing `ANTHROPIC_API_KEY`: `New()` returns error → `handleWS` writes
     `\x1b[31m[ghost] ANTHROPIC_API_KEY not set\x1b[0m\r\n` and disables AI routing
   - History truncation: 200 char/line cap, 10-line max enforced in `appendHistory()`
   - Token budget note: 10 lines × 200 chars ≈ 500 tokens of context, well within limits
   - Update README: add `ANTHROPIC_API_KEY=sk-ant-... go run ./cmd/ghost-shell` example
+  - `.env` file support via loader in `main.go`; `.env` gitignored; `.env.example` added
 
 ---
 
