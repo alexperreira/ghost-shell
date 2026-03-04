@@ -13,7 +13,7 @@ This repo follows Alex Perreira’s machine-wide agent defaults. Additions below
 
 ## Git Policy
 - Inherits machine-wide defaults (branch + push for continuity; PR required for higher-risk changes).
-- Add any repo-specific overrides here.
+- Never add "Co-Authored-By: Claude" or any AI attribution to commit messages.
 
 ## Invariants (fill in)
 - (Add rules that must not be broken without explicit approval.)
