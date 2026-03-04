@@ -1,6 +1,7 @@
 package pty
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -10,6 +11,7 @@ import (
 // Manager wraps a PTY-attached shell process.
 type Manager struct {
 	ptmx *os.File
+	cmd  *exec.Cmd
 }
 
 // Start spawns the given shell in a PTY and returns a Manager.
@@ -21,7 +23,12 @@ func Start(shell string) (*Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Manager{ptmx: ptmx}, nil
+	return &Manager{ptmx: ptmx, cmd: cmd}, nil
+}
+
+// CWD returns the current working directory of the shell process.
+func (m *Manager) CWD() (string, error) {
+	return os.Readlink(fmt.Sprintf("/proc/%d/cwd", m.cmd.Process.Pid))
 }
 
 // Write sends raw bytes into the PTY (keystrokes from the client).
