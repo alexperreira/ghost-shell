@@ -24,6 +24,7 @@ export default function TerminalComponent() {
     let atLineStart = true;
     let ghostMode: GhostMode = { active: false };
     let pendingCmd: PendingCmd = null;
+    let isLoading = false;
 
     ws.onopen = () => {
       const { rows, cols } = term;
@@ -44,9 +45,17 @@ export default function TerminalComponent() {
           ws.close();
           break;
         case "ai_chunk":
+          if (isLoading) {
+            term.write("\r\x1b[K");
+            isLoading = false;
+          }
           term.write(`\x1b[36m${msg.data as string}\x1b[0m`);
           break;
         case "ai_done":
+          if (isLoading) {
+            term.write("\r\x1b[K");
+            isLoading = false;
+          }
           term.write("\r\n");
           if (msg.command) {
             term.write(
@@ -57,10 +66,18 @@ export default function TerminalComponent() {
           atLineStart = true;
           break;
         case "ai_error":
+          if (isLoading) {
+            term.write("\r\x1b[K");
+            isLoading = false;
+          }
           term.write(`\x1b[31m[ghost error] ${msg.data as string}\x1b[0m\r\n`);
           atLineStart = true;
           break;
       }
+    };
+
+    ws.onerror = () => {
+      term.write("\r\n\x1b[31m[ghost] WebSocket error — connection failed\x1b[0m\r\n");
     };
 
     ws.onclose = () => {
@@ -90,7 +107,8 @@ export default function TerminalComponent() {
         if (data === "\r") {
           ws.send(JSON.stringify({ type: "ai_query", data: ghostMode.buffer }));
           ghostMode = { active: false };
-          term.write("\r\n");
+          isLoading = true;
+          term.write("\r\n\x1b[2m[ghost] thinking...\x1b[0m");
           atLineStart = false;
         } else if (data === "\x1b") {
           // Cancel — erase "ghost> " prefix (7 chars) + buffered text.
