@@ -41,7 +41,7 @@ func loadDotEnv(path string) {
 func main() {
 	loadDotEnv(".env")
 
-	addr := flag.String("addr", ":8080", "WebSocket server address")
+	addr := flag.String("addr", "127.0.0.1:8080", "WebSocket server address")
 	flag.Parse()
 
 	if err := server.ListenAndServe(*addr, web.Static); err != nil {

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -32,7 +33,18 @@ type ServerMessage struct {
 }
 
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true // no Origin header = non-browser client (curl, etc.)
+		}
+		u, err := url.Parse(origin)
+		if err != nil {
+			return false
+		}
+		h := u.Hostname()
+		return h == "localhost" || h == "127.0.0.1"
+	},
 }
 
 type session struct {
