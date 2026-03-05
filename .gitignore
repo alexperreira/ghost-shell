@@ -17,6 +17,10 @@ __pycache__/
 .ruff_cache/
 .venv/
 
+# Build output
+internal/web/static/
+bin/
+
 # Secrets
 .env
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -197,8 +198,14 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListenAndServe starts the HTTP server on addr (e.g. ":8080").
-func ListenAndServe(addr string) error {
+// static is the embedded filesystem containing the built frontend (rooted at "static/").
+func ListenAndServe(addr string, static fs.FS) error {
+	sub, err := fs.Sub(static, "static")
+	if err != nil {
+		return err
+	}
+	http.Handle("/", http.FileServer(http.FS(sub)))
 	http.HandleFunc("/ws", handleWS)
-	log.Printf("ghost-shell backend listening on %s", addr)
+	log.Printf("ghost-shell listening on %s — open http://localhost%s", addr, addr)
 	return http.ListenAndServe(addr, nil)
 }

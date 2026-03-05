@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/alexperreira/ghost-shell/internal/server"
+	"github.com/alexperreira/ghost-shell/internal/web"
 )
 
 // loadDotEnv reads a .env file and sets any unset environment variables found in it.
@@ -43,7 +44,7 @@ func main() {
 	addr := flag.String("addr", ":8080", "WebSocket server address")
 	flag.Parse()
 
-	if err := server.ListenAndServe(*addr); err != nil {
+	if err := server.ListenAndServe(*addr, web.Static); err != nil {
 		log.Fatal(err)
 	}
 }
