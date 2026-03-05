@@ -38,7 +38,7 @@ A terminal emulator with built-in AI assistance. Users can run normal shell comm
 - No plugin system
 - No themes or heavy customization
 - No local/on-device LLM (API-only for now)
-- No Windows support initially (macOS/Linux first)
+- No Windows-native binary (targets WSL2/Linux; frontend opens in Windows browser via localhost)
 
 ## Architecture Sketch
 ```
@@ -62,7 +62,7 @@ A terminal emulator with built-in AI assistance. Users can run normal shell comm
 |----------|--------|-----------|
 | Terminal rendering | xterm.js in React | Battle-tested, handles ANSI codes well |
 | Go PTY library | `creack/pty` | Standard choice for Go terminal apps |
-| Desktop wrapper | Tauri (preferred) or Electron | Tauri is lighter; Electron if React ecosystem matters more |
+| Distribution | Single Go binary (embed frontend via `go:embed`) | No Tauri/Electron needed for WSL2; user runs binary in WSL, opens browser |
 | LLM API | Anthropic Claude | Strong coding assistance, good context handling |
 | IPC | WebSocket | Simple bidirectional communication |
 
@@ -94,26 +94,26 @@ ghost-shell/
 ## Milestones
 
 ### Week 1-2: Foundation
-- [ ] Go backend with PTY spawning
-- [ ] WebSocket server for frontend communication
-- [ ] Basic React app with xterm.js rendering shell output
-- [ ] Bidirectional I/O working (type command → see output)
+- [x] Go backend with PTY spawning
+- [x] WebSocket server for frontend communication
+- [x] Basic React app with xterm.js rendering shell output
+- [x] Bidirectional I/O working (type command → see output)
 
 ### Week 3: AI Integration
-- [ ] LLM client in Go (Claude API)
-- [ ] Detect AI trigger prefix in input
-- [ ] Route AI queries to LLM, display response in terminal
-- [ ] Basic prompt engineering for command suggestions
+- [x] LLM client in Go (Claude API)
+- [x] Detect AI trigger prefix in input
+- [x] Route AI queries to LLM, display response in terminal
+- [x] Basic prompt engineering for command suggestions
 
 ### Week 4: Polish & UX
-- [ ] Visual distinction for AI responses (color, prefix icon)
-- [ ] Accept/dismiss flow for suggested commands
-- [ ] Context injection (CWD, recent commands)
-- [ ] Error handling and loading states
+- [x] Visual distinction for AI responses (color, prefix icon)
+- [x] Accept/dismiss flow for suggested commands
+- [x] Context injection (CWD, recent commands)
+- [x] Error handling and loading states
 
 ### Week 5-6: Packaging & Testing
-- [ ] Tauri/Electron packaging for macOS
-- [ ] Basic install flow
+- [x] Embed frontend with `go:embed` into a single WSL binary
+- [x] Basic install flow (`make build` → `bin/ghost-shell`)
 - [ ] README, demo GIF, release
 
 ## Open Questions (Decide During Build)
@@ -165,10 +165,10 @@ $ ? how do I find files larger than 100MB
 
 Focus on working software over perfect architecture. Ship the ugly version first.
 
-## Updated: Platform Strategy
+## Platform Strategy
 
-### Option A: Develop inside WSL (recommended for speed)
-- Run ghost-shell entirely inside WSL
-- `creack/pty` works normally
-- Test with native Linux binaries
-- Windows packaging comes later
+- Run ghost-shell entirely inside WSL2 (Go backend + PTY run as Linux processes)
+- `creack/pty` works normally — no Windows-native PTY workarounds needed
+- Frontend served at `http://localhost:8080`; open in any Windows browser
+- Distribution: `go build` produces a single binary; `go:embed` bundles the built React app
+- Windows-native packaging (Tauri/Electron wrapping WSL) is out of scope for MVP
